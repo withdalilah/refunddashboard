@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    /* GLASSMORPHISM THEME */
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      color: white;
+      padding-bottom: 50px;
+    }
+
+    .bg-shape {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      animation: float 10s infinite ease-in-out alternate;
+    }
+    .shape-1 { top: -10%; left: -10%; width: 500px; height: 500px; background: rgba(255, 100, 100, 0.4); }
+    .shape-2 { bottom: -10%; right: -10%; width: 600px; height: 600px; background: rgba(50, 200, 255, 0.4); }
+
+    @keyframes float {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(30px, 30px); }
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    .glass-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.2); }
+
+    .glass-select {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+    }
+    .glass-select option { background: #764ba2; color: white; }
+
+    h1, h2, h3 { text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    canvas { max-height: 300px; }
+
+    /* MODAL STYLES */
+    #dataModal { transition: opacity 0.3s ease; }
+    .animate-scaleIn { animation: scaleIn 0.2s ease-out forwards; }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    /* Table Styling */
+    .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+    .table-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+    .table-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+    
+    table th { font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.2); }
+    table td { border-bottom: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+    table tr:hover td { background: rgba(255,255,255,0.1); color: white; }
+  </style>
+</head>
+<body class="p-6">
+
+  <div class="bg-shape shape-1"></div>
+  <div class="bg-shape shape-2"></div>
+
+  <div class="flex flex-col md:flex-row justify-between items-center mb-8 glass-panel">
+    <div>
+      <h1 class="text-3xl font-bold tracking-wide">Global Refund Tracker</h1>
+      <p class="text-sm opacity-80 mt-1">Analytics Dashboard</p>
+    </div>
+    <div class="mt-4 md:mt-0 flex items-center gap-4">
+      <label class="font-semibold">Select Month:</label>
+      <select id="monthFilter" class="glass-select" onchange="renderDashboard()">
+        <option value="All">Loading...</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="kpi-container" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8"></div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <div class="glass-panel">
+      <h3 class="text-lg font-semibold mb-4">Ticket Volume Trend</h3>
+      <canvas id="lineChartTickets"></canvas>
+    </div>
+
+    <div class="glass-panel">
+      <h3 class="text-lg font-semibold mb-4">Refund Status Distribution (Ticket Count)</h3>
+      <canvas id="pieChartStatus"></canvas>
+    </div>
+
+    <div class="glass-panel hover:border-white/40 transition-colors">
+      <div class="flex justify-between items-start">
+        <h3 class="text-lg font-semibold mb-4">Highest Refund Category (By Amount)</h3>
+        <span class="text-[10px] bg-white/20 px-2 py-1 rounded-full">Click bars for details</span>
+      </div>
+      <p class="text-xs opacity-70 mb-2">Based on <b>Closed</b> tickets only.</p>
+      <canvas id="barChartCategory"></canvas>
+    </div>
+
+    <div class="glass-panel hover:border-white/40 transition-colors">
+      <div class="flex justify-between items-start">
+        <h3 class="text-lg font-semibold mb-4">Highest Refund Subcategory (By Amount)</h3>
+        <span class="text-[10px] bg-white/20 px-2 py-1 rounded-full">Click bars for details</span>
+      </div>
+      <p class="text-xs opacity-70 mb-2">Based on <b>Closed</b> tickets only.</p>
+      <canvas id="barChartSubcategory"></canvas>
+    </div>
+
+    <div class="glass-panel hover:border-white/40 transition-colors">
+      <div class="flex justify-between items-start">
+        <h3 class="text-lg font-semibold mb-4">Highest Refund Property (By Amount)</h3>
+        <span class="text-[10px] bg-white/20 px-2 py-1 rounded-full">Click bars for details</span>
+      </div>
+      <p class="text-xs opacity-70 mb-2">Based on <b>Closed</b> tickets only.</p>
+      <canvas id="barChartPropertyAmt"></canvas>
+    </div>
+
+    <div class="glass-panel hover:border-white/40 transition-colors">
+      <div class="flex justify-between items-start">
+        <h3 class="text-lg font-semibold mb-4">Most Repeated Property ID (3-Month Rolling)</h3>
+        <span class="text-[10px] bg-white/20 px-2 py-1 rounded-full">Click bars for details</span>
+      </div>
+      <p class="text-xs opacity-70 mb-2">Most tickets (Open & Closed) in last 3 months.</p>
+      <canvas id="barChartPropertyCount"></canvas>
+    </div>
+  </div>
+
+  <div id="dataModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="glass-panel w-full max-w-5xl h-[85vh] flex flex-col relative animate-scaleIn shadow-2xl border border-white/30">
+      
+      <div class="flex justify-between items-center mb-6 pb-4 border-b border-white/20">
+        <div>
+          <h2 id="modalTitle" class="text-2xl font-bold">Details</h2>
+          <p id="modalSubtitle" class="text-sm opacity-70 mt-1">Filtered View</p>
+        </div>
+        <button onclick="closeModal()" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="overflow-auto flex-1 table-container">
+        <table class="w-full text-left text-sm border-separate border-spacing-0">
+          <thead class="sticky top-0 bg-[#667eea] z-10 shadow-lg">
+            <tr>
+              <th class="p-4 rounded-tl-lg">Date</th>
+              <th class="p-4">Ticket ID</th>
+              <th class="p-4">Property</th>
+              <th class="p-4">Category</th>
+              <th class="p-4">Subcategory</th>
+              <th class="p-4">Status</th>
+              <th class="p-4 text-right rounded-tr-lg">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="modalTableBody" class="bg-white/5">
+            </tbody>
+        </table>
+      </div>
+      
+      <div class="mt-4 pt-4 border-t border-white/10 text-right text-xs opacity-50">
+        Showing filtered results based on selection.
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let rawData = [];
+    let chartInstances = {};
+    const markets = ['Portugal', 'France', 'UK', 'Dubai', 'Spain'];
+    const marketColors = ['#F87171', '#60A5FA', '#34D399', '#FBBF24', '#A78BFA'];
+
+    window.onload = function() {
+      google.script.run.withSuccessHandler(onDataLoaded).getSheetData();
+    };
+
+    function onDataLoaded(payload) {
+      const headers = payload.headers;
+      
+      const findIdx = (names, exclude = []) => {
+         const lowerHeaders = headers.map(h => h.toLowerCase().trim());
+         for (let name of names) {
+            const idx = lowerHeaders.findIndex(h => h === name.toLowerCase() && !exclude.some(ex => h.includes(ex)));
+            if (idx !== -1) return idx;
+         }
+         for (let name of names) {
+            const idx = lowerHeaders.findIndex(h => h.includes(name.toLowerCase()) && !exclude.some(ex => h.includes(ex)));
+            if (idx !== -1) return idx;
+         }
+         return -1;
+      };
+
+      const idx = {
+        date: findIdx(['refund requested at', 'date']),
+        country: findIdx(['country', 'market']),
+        amount: findIdx(['amount', 'value']),
+        ticketId: findIdx(['ticket id', 'ticket']),
+        propertyId: findIdx(['property id', 'property']),
+        status: findIdx(['status']),
+        category: findIdx(['refund category', 'category']),
+        subcategory: findIdx(['refund subcategory', 'subcategory'])
+      };
+
+      rawData = payload.rows.map(row => {
+        const dateStr = row[idx.date];
+        const dateObj = parseDate(dateStr);
+        let statusRaw = row[idx.status] || 'Open';
+        statusRaw = statusRaw.trim(); 
+        
+        return {
+          date: dateObj,
+          monthStr: dateObj ? getMonthYearStr(dateObj) : 'Unknown',
+          dateDisplay: dateObj ? dateObj.toLocaleDateString() : dateStr,
+          country: normalizeCountry(row[idx.country]),
+          amount: parseFloat(row[idx.amount] || 0),
+          ticketId: row[idx.ticketId],
+          category: row[idx.category],
+          subcategory: row[idx.subcategory],
+          propertyId: row[idx.propertyId],
+          status: statusRaw
+        };
+      }).filter(d => d.date);
+
+      populateMonthFilter();
+      renderDashboard();
+    }
+
+    // --- Helpers ---
+    function parseDate(str) {
+      if (!str) return null;
+      const parts = str.split(' ')[0].split('/');
+      if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
+      return new Date(str);
+    }
+
+    function getMonthYearStr(date) {
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    function normalizeCountry(c) {
+      if (!c) return 'Other';
+      if (c.toLowerCase().includes('united kingdom')) return 'UK';
+      return c.trim();
+    }
+
+    function populateMonthFilter() {
+      const select = document.getElementById('monthFilter');
+      const uniqueMonths = [...new Set(rawData.map(d => d.monthStr))];
+      uniqueMonths.sort((a, b) => new Date(b) - new Date(a));
+      
+      select.innerHTML = '';
+      uniqueMonths.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.innerText = m;
+        select.appendChild(opt);
+      });
+      if (uniqueMonths.length > 0) select.value = uniqueMonths[0];
+    }
+
+    function getCurrency(market) {
+      if (market === 'UK') return '£';
+      if (market === 'Dubai') return ' AED';
+      return '€';
+    }
+
+    // --- MODAL LOGIC ---
+    function openModal(title, subtitle, dataRows) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalSubtitle').innerText = subtitle;
+      
+      const tbody = document.getElementById('modalTableBody');
+      tbody.innerHTML = '';
+
+      if (dataRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center opacity-50">No matching records found.</td></tr>`;
+      } else {
+        dataRows.forEach(row => {
+          const tr = document.createElement('tr');
+          const currency = getCurrency(row.country);
+          const amtStr = currency === ' AED' ? row.amount.toFixed(2) + currency : currency + row.amount.toFixed(2);
+          
+          tr.innerHTML = `
+            <td class="p-4 whitespace-nowrap">${row.dateDisplay}</td>
+            <td class="p-4 font-mono text-xs bg-white/5 rounded">${row.ticketId || '-'}</td>
+            <td class="p-4">${row.propertyId || '-'}</td>
+            <td class="p-4">${row.category || '-'}</td>
+            <td class="p-4">${row.subcategory || '-'}</td>
+            <td class="p-4"><span class="px-2 py-1 rounded text-xs ${row.status.toLowerCase().includes('closed') ? 'bg-green-500/20 text-green-200' : 'bg-yellow-500/20 text-yellow-200'}">${row.status}</span></td>
+            <td class="p-4 text-right font-bold">${amtStr}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      const modal = document.getElementById('dataModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('dataModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Close on click outside
+    document.getElementById('dataModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // --- Main Rendering ---
+
+    function renderDashboard() {
+      const selectedMonth = document.getElementById('monthFilter').value;
+      const monthlyData = rawData.filter(d => d.monthStr === selectedMonth);
+      
+      const selDate = new Date(selectedMonth);
+      const startWindow = new Date(selDate);
+      startWindow.setMonth(startWindow.getMonth() - 2); 
+      const endDate = new Date(selDate.getFullYear(), selDate.getMonth() + 1, 0);
+      const rollingData = rawData.filter(d => d.date >= new Date(startWindow.getFullYear(), startWindow.getMonth(), 1) && d.date <= endDate);
+
+      renderCards(monthlyData);
+      renderCharts(monthlyData, rollingData);
+    }
+
+    function renderCards(data) {
+      const container = document.getElementById('kpi-container');
+      container.innerHTML = '';
+      
+      markets.forEach(market => {
+        const mData = data.filter(d => d.country === market);
+        const total = mData.reduce((sum, d) => sum + d.amount, 0);
+        const curr = getCurrency(market);
+        
+        let displayStr = curr === ' AED' ? 
+          `${total.toLocaleString(undefined, {maximumFractionDigits:0})} AED` : 
+          `${curr}${total.toLocaleString(undefined, {maximumFractionDigits:0})}`;
+
+        container.innerHTML += `
+          <div class="glass-card" onclick="openModal('${market} Refunds', 'All tickets for this month', rawData.filter(d => d.country === '${market}' && d.monthStr === '${document.getElementById('monthFilter').value}'))">
+            <h4 class="text-sm uppercase tracking-widest opacity-70">${market}</h4>
+            <div class="text-2xl font-bold mt-2">${displayStr}</div>
+            <div class="text-xs mt-2 opacity-60">${mData.length} refunds <span class="float-right">Click to view</span></div>
+          </div>`;
+      });
+    }
+
+    function renderCharts(monthlyData, rollingData) {
+      const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }, 
+        scales: {
+          y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'white' } },
+          x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'white' } }
+        }
+      };
+
+      // 1. Timeline
+      const months = [...new Set(rawData.map(d => d.monthStr))].sort((a,b) => new Date(a) - new Date(b));
+      const lineDatasets = markets.map((m, i) => ({
+        label: m,
+        data: months.map(mon => rawData.filter(d => d.country === m && d.monthStr === mon).length),
+        borderColor: marketColors[i],
+        tension: 0.4
+      }));
+      createChart('lineChartTickets', 'line', { labels: months, datasets: lineDatasets }, 
+        { ...commonOptions, plugins: { legend: { display: true, labels: { color: 'white' } } } });
+
+      // 2. Status
+      const statuses = [...new Set(monthlyData.map(d => d.status))];
+      const statusCounts = statuses.map(s => monthlyData.filter(d => d.status === s).length);
+      createChart('pieChartStatus', 'doughnut', {
+        labels: statuses,
+        datasets: [{
+          data: statusCounts,
+          backgroundColor: ['#34D399', '#FBBF24', '#F87171', '#60A5FA', '#A78BFA'],
+          borderColor: 'rgba(255,255,255,0.1)'
+        }]
+      }, { ...commonOptions, plugins: { legend: { position: 'right', labels: { color: 'white' } } } });
+
+      // --- FILTER LOGIC ---
+      const closedData = monthlyData.filter(d => d.status.toLowerCase().includes('closed'));
+
+      function getWinners(dataSrc, field, metric = 'amount') {
+        return markets.map(market => {
+          const mData = dataSrc.filter(d => d.country === market);
+          if (mData.length === 0) return { name: 'N/A', val: 0, count: 0, market: market };
+
+          const groups = {};
+          mData.forEach(d => {
+            const key = d[field] || 'Unknown';
+            if (!groups[key]) groups[key] = { amt: 0, count: 0 };
+            groups[key].amt += d.amount;
+            groups[key].count += 1;
+          });
+
+          let maxKey = 'N/A';
+          let maxVal = -1;
+          let assocCount = 0;
+
+          for (const [key, obj] of Object.entries(groups)) {
+            if (key === 'Unknown') continue; 
+            const compareVal = metric === 'count' ? obj.count : obj.amt;
+            if (compareVal > maxVal) { 
+               maxVal = compareVal; 
+               maxKey = key; 
+               assocCount = obj.count; 
+            }
+          }
+          if (maxKey === 'N/A' && groups['Unknown']) {
+             maxKey = 'Unknown'; 
+             maxVal = metric === 'count' ? groups['Unknown'].count : groups['Unknown'].amt;
+             assocCount = groups['Unknown'].count;
+          }
+          return { name: maxKey, val: Math.max(0, maxVal), count: assocCount, market: market };
+        });
+      }
+
+      // 3. Top Category ($) - CLOSED Only
+      const topCats = getWinners(closedData, 'category', 'amount');
+      // Pass 'closedData' as source so the click shows only closed tickets
+      createBarChart('barChartCategory', topCats, 'amount', 'category', closedData);
+
+      // 4. Top Subcategory ($) - CLOSED Only
+      const topSub = getWinners(closedData, 'subcategory', 'amount');
+      createBarChart('barChartSubcategory', topSub, 'amount', 'subcategory', closedData);
+
+      // 5. Top Property ($) - CLOSED Only
+      const topPropAmt = getWinners(closedData, 'propertyId', 'amount');
+      createBarChart('barChartPropertyAmt', topPropAmt, 'amount', 'propertyId', closedData);
+
+      // 6. Most Repeated Property (Count) - Keep All Statuses (Rolling Data)
+      const topPropCount = getWinners(rollingData, 'propertyId', 'count');
+      createBarChart('barChartPropertyCount', topPropCount, 'count', 'propertyId', rollingData);
+    }
+
+    // UPDATED: createBarChart now accepts sourceData and filterField
+    function createBarChart(canvasId, winnerData, type, filterField, sourceData) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+      chartInstances[canvasId] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: markets,
+          datasets: [{
+            data: winnerData.map(w => w.val),
+            backgroundColor: marketColors,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: function(context) {
+                   const idx = context[0].dataIndex;
+                   const item = winnerData[idx];
+                   return `${item.market} (Tickets: ${item.count})`;
+                },
+                label: function(context) {
+                  const idx = context.dataIndex;
+                  const item = winnerData[idx];
+                  const mkt = markets[idx];
+                  
+                  let valDisplay = item.val;
+                  if (type === 'count') {
+                     valDisplay = item.val + ' Refunds';
+                  } else {
+                     const curr = getCurrency(mkt);
+                     valDisplay = curr === ' AED' ? 
+                        item.val.toLocaleString() + ' AED' : 
+                        curr + item.val.toLocaleString();
+                  }
+                  return `${item.name}: ${valDisplay}`;
+                }
+              }
+            }
+          },
+          // INTERACTIVITY HERE
+          onClick: (e, elements) => {
+            if (elements.length > 0) {
+              const idx = elements[0].index;
+              const item = winnerData[idx];
+              
+              if (item.name === 'N/A') return; // Don't click if no data
+
+              // Filter the passed sourceData
+              const details = sourceData.filter(d => 
+                d.country === item.market && 
+                d[filterField] === item.name
+              );
+
+              // Construct Title
+              const title = `Details for ${item.market}`;
+              const subtitle = `Filter: ${filterField} = "${item.name}"`;
+
+              openModal(title, subtitle, details);
+            }
+          },
+          onHover: (event, chartElement) => {
+            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'white' } },
+            x: { grid: { display: false }, ticks: { color: 'white', font: { weight: 'bold' } } }
+          }
+        }
+      });
+    }
+
+    function createChart(id, type, data, options) {
+      if (chartInstances[id]) chartInstances[id].destroy();
+      const ctx = document.getElementById(id).getContext('2d');
+      chartInstances[id] = new Chart(ctx, { type, data, options });
+    }
+  </script>
+</body>
+</html>
