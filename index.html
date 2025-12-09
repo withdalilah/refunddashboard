@@ -158,22 +158,6 @@
 
     <div class="glass-panel hover:border-white/40 transition-colors">
       <div class="flex justify-between items-start">
-        <h3 class="text-lg font-semibold mb-4">Missing Categories (Closed & Multiple Status)</h3>
-        <div class="flex gap-2 text-[9px]">
-          <button onclick="setChartFilter('barChartMissingCategory', 'All')" class="market-filter market-filter-All-barChartMissingCategory active">All</button>
-          <button onclick="setChartFilter('barChartMissingCategory', 'Portugal')" class="market-filter market-filter-Portugal-barChartMissingCategory">PT</button>
-          <button onclick="setChartFilter('barChartMissingCategory', 'France')" class="market-filter market-filter-France-barChartMissingCategory">FR</button>
-          <button onclick="setChartFilter('barChartMissingCategory', 'UK')" class="market-filter market-filter-UK-barChartMissingCategory">UK</button>
-          <button onclick="setChartFilter('barChartMissingCategory', 'Dubai')" class="market-filter market-filter-Dubai-barChartMissingCategory">AE</button>
-          <button onclick="setChartFilter('barChartMissingCategory', 'Spain')" class="market-filter market-filter-Spain-barChartMissingCategory">ES</button>
-        </div>
-      </div>
-      <p class="text-xs opacity-70 mb-2">Tickets with status <b>Closed</b> or <b>Multiple</b> that have missing/empty categories.</p>
-      <canvas id="barChartMissingCategory"></canvas>
-    </div>
-
-    <div class="glass-panel hover:border-white/40 transition-colors">
-      <div class="flex justify-between items-start">
         <h3 class="text-lg font-semibold mb-4">Highest Refund Subcategory (By Amount)</h3>
         <div class="flex gap-2 text-[9px]">
           <button onclick="setChartFilter('barChartSubcategory', 'All')" class="market-filter market-filter-All-barChartSubcategory active">All</button>
@@ -219,6 +203,15 @@
       <p class="text-xs opacity-70 mb-2">Most tickets (Open & Closed) in last 3 months.</p>
       <canvas id="barChartPropertyCount"></canvas>
     </div>
+
+    <div class="glass-panel hover:border-white/40 transition-colors">
+      <div class="flex justify-between items-start">
+        <h3 class="text-lg font-semibold mb-4">Missing Categories</h3>
+      </div>
+      <p class="text-xs opacity-70 mb-2">Tickets with status <b>Closed</b> or <b>Multiple</b> that have missing/empty categories.</p>
+      <canvas id="pieChartMissing"></canvas>
+    </div>
+
   </div>
 
   <div id="dataModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -434,6 +427,16 @@
       modal.classList.remove('flex');
     }
 
+    // NEW: Helper for Key Cards to handle "All" logic
+    function openKeyCardModal(market) {
+      const monthFilter = document.getElementById('monthFilter').value;
+      const data = rawData.filter(d => 
+        d.country === market && 
+        (monthFilter === 'All' || d.monthStr === monthFilter)
+      );
+      openModal(`${market} Refunds`, `Tickets for ${monthFilter === 'All' ? 'All Months' : monthFilter}`, data);
+    }
+
     // Close on click outside
     document.getElementById('dataModal').addEventListener('click', function(e) {
       if (e.target === this) closeModal();
@@ -541,8 +544,9 @@
           `${total.toLocaleString(undefined, {maximumFractionDigits:0})} AED` : 
           `${curr}${total.toLocaleString(undefined, {maximumFractionDigits:0})}`;
 
+        // UPDATED ONCLICK to use helper function
         container.innerHTML += `
-          <div class="glass-card" onclick="openModal('${market} Refunds', 'All tickets for this month', rawData.filter(d => d.country === '${market}' && d.monthStr === '${document.getElementById('monthFilter').value}'))">
+          <div class="glass-card" onclick="openKeyCardModal('${market}')">
             <h4 class="text-sm uppercase tracking-widest opacity-70">${market}</h4>
             <div class="text-2xl font-bold mt-2">${displayStr}</div>
             <div class="text-xs mt-2 opacity-60">${mData.length} refunds <span class="float-right">Click to view</span></div>
@@ -633,21 +637,8 @@
 
       // 3. Top Category ($) - CLOSED Only
       const topCats = getWinners(closedData, 'category', 'amount');
-      // Pass 'closedData' as source so the click shows only closed tickets
       chartData['barChartCategory'] = { winnerData: topCats, type: 'amount', filterField: 'category', sourceData: closedData };
       renderSpecificChart('barChartCategory', topCats, 'amount', 'category', closedData);
-
-      // 3.5 Missing Categories - CLOSED or MULTIPLE
-      const closedOrMultipleData = monthlyData.filter(d => 
-        d.status.toLowerCase().includes('closed') || d.status.toLowerCase().includes('multiple')
-      );
-      const missingCategoryData = markets.map(market => {
-        const mData = closedOrMultipleData.filter(d => d.country === market);
-        const missingCount = mData.filter(d => !d.category || d.category.trim() === '').length;
-        return { name: 'Missing', val: missingCount, count: missingCount, market: market };
-      });
-      chartData['barChartMissingCategory'] = { winnerData: missingCategoryData, type: 'count', filterField: 'category', sourceData: closedOrMultipleData };
-      renderSpecificChart('barChartMissingCategory', missingCategoryData, 'count', 'category', closedOrMultipleData);
 
       // 4. Top Subcategory ($) - CLOSED Only
       const topSub = getWinners(closedData, 'subcategory', 'amount');
@@ -663,6 +654,53 @@
       const topPropCount = getWinners(rollingData, 'propertyId', 'count');
       chartData['barChartPropertyCount'] = { winnerData: topPropCount, type: 'count', filterField: 'propertyId', sourceData: rollingData };
       renderSpecificChart('barChartPropertyCount', topPropCount, 'count', 'propertyId', rollingData);
+
+      // 7. Missing Categories (Moved to bottom & Changed to Pie)
+      const closedOrMultipleData = monthlyData.filter(d => 
+        d.status.toLowerCase().includes('closed') || d.status.toLowerCase().includes('multiple')
+      );
+      
+      const missingCountsByMarket = markets.map(m => {
+        // Count tickets where category is missing/empty
+        return closedOrMultipleData.filter(d => d.country === m && (!d.category || d.category.trim() === '')).length;
+      });
+
+      createChart('pieChartMissing', 'pie', {
+        labels: markets,
+        datasets: [{
+          data: missingCountsByMarket,
+          backgroundColor: marketColors,
+          borderColor: 'rgba(255,255,255,0.1)'
+        }]
+      }, {
+        ...commonOptions,
+        plugins: { 
+          legend: { position: 'right', labels: { color: 'white' } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const val = context.raw;
+                return `${context.label}: ${val} Missing`;
+              }
+            }
+          }
+        },
+        // Custom Click Handler for Missing Categories Pie Chart
+        onClick: (e, elements) => {
+          if(elements.length > 0) {
+            const idx = elements[0].index;
+            const market = markets[idx];
+            // Filter logic: Country matches AND category is empty/null
+            const details = closedOrMultipleData.filter(d => 
+               d.country === market && (!d.category || d.category.trim() === '')
+            );
+            openModal(`Missing Categories - ${market}`, 'Tickets with missing categories', details);
+          }
+        },
+        onHover: (event, chartElement) => {
+            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+        }
+      });
     }
 
     // UPDATED: createBarChart now accepts sourceData and filterField, and optional displayLabels
@@ -714,7 +752,7 @@
               }
             }
           },
-          // INTERACTIVITY HERE
+          // UPDATED INTERACTIVITY
           onClick: (e, elements) => {
             if (elements.length > 0) {
               const idx = elements[0].index;
@@ -722,11 +760,11 @@
               
               if (item.name === 'N/A') return; // Don't click if no data
 
-              // Filter the passed sourceData
-              const details = sourceData.filter(d => 
-                d.country === item.market && 
-                d[filterField] === item.name
-              );
+              // Filter sourceData handling 'Unknown' vs empty strings
+              const details = sourceData.filter(d => {
+                 const valToCheck = d[filterField] || 'Unknown';
+                 return d.country === item.market && valToCheck === item.name;
+              });
 
               // Construct Title
               const title = `Details for ${item.market}`;
