@@ -6,88 +6,100 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
-    /* GLASSMORPHISM THEME */
+    /* PALETTE:
+       Blue: #8BA8E3
+       Cream: #F3F4E3
+       Salmon: #F58F79
+       GreyBlue: #DBDFEC
+       PinkWhite: #FFEAE5
+       Text: #444444
+    */
+
+    /* MATTE THEME */
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-color: #F3F4E3; /* Cream Background */
       font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       min-height: 100vh;
-      color: white;
+      color: #444444; /* Dark Text */
       padding-bottom: 50px;
     }
 
-    .bg-shape {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      z-index: -1;
-      animation: float 10s infinite ease-in-out alternate;
-    }
-    .shape-1 { top: -10%; left: -10%; width: 500px; height: 500px; background: rgba(255, 100, 100, 0.4); }
-    .shape-2 { bottom: -10%; right: -10%; width: 600px; height: 600px; background: rgba(50, 200, 255, 0.4); }
+    /* Remove floating shapes */
+    .bg-shape { display: none; }
 
-    @keyframes float {
-      0% { transform: translate(0, 0); }
-      100% { transform: translate(30px, 30px); }
-    }
-
+    /* Card Styling (Replaces Glass) */
     .glass-panel {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: #FFFFFF;
       border-radius: 16px;
       padding: 1.5rem;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle Shadow */
+      border: 1px solid #DBDFEC; /* GreyBlue Border */
+      color: #444;
     }
 
     .glass-card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: #FFFFFF;
       border-radius: 12px;
       padding: 20px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: transform 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s;
       cursor: pointer;
+      color: #444;
+      border: 1px solid #DBDFEC;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
-    .glass-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.2); }
+    .glass-card:hover { 
+      transform: translateY(-3px); 
+      box-shadow: 0 8px 16px rgba(139, 168, 227, 0.2); 
+      border-color: #8BA8E3;
+    }
 
     .glass-select {
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
+      background: #FFFFFF;
+      border: 1px solid #DBDFEC;
+      color: #444;
       padding: 8px 16px;
       border-radius: 8px;
       outline: none;
       cursor: pointer;
+      font-weight: 500;
     }
-    .glass-select option { background: #764ba2; color: white; }
+    .glass-select:hover { border-color: #8BA8E3; }
 
+    /* Market Filter Buttons */
     .market-filter {
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
+      background: #F3F4E3; /* Light Cream bg for inactive */
+      border: 1px solid #DBDFEC;
+      color: #666;
       padding: 6px 12px;
       border-radius: 6px;
       outline: none;
       cursor: pointer;
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 600;
       transition: all 0.2s;
     }
     
     .market-filter:hover {
-      background: rgba(255, 255, 255, 0.25);
+      background: #DBDFEC;
+      color: #333;
     }
     
     .market-filter.active {
-      background: rgba(255, 255, 255, 0.3);
-      border-color: rgba(255, 255, 255, 0.5);
+      background: #8BA8E3; /* Blue Active */
+      color: white;
+      border-color: #8BA8E3;
     }
 
-    h1, h2, h3 { text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    /* Headers */
+    h1, h2, h3 { 
+      color: #8BA8E3; /* Blue Headers */
+      font-weight: 700;
+      text-shadow: none; 
+    }
+    
     canvas { max-height: 300px; }
 
     /* MODAL STYLES */
@@ -100,26 +112,38 @@
     
     /* Table Styling */
     .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
-    .table-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
-    .table-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+    .table-container::-webkit-scrollbar-thumb { background: #DBDFEC; border-radius: 4px; }
+    .table-container::-webkit-scrollbar-track { background: #f9f9f9; }
     
-    table th { font-weight: 600; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.2); }
-    table td { border-bottom: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
-    table tr:hover td { background: rgba(255,255,255,0.1); color: white; }
+    table th { 
+      font-weight: 600; 
+      color: #8BA8E3; 
+      background: #F9FAFB; 
+      border-bottom: 2px solid #DBDFEC; 
+    }
+    table td { 
+      border-bottom: 1px solid #F3F4E3; 
+      color: #555; 
+    }
+    table tr:hover td { 
+      background: #F3F4E3; 
+      color: #333; 
+    }
+
+    /* Status Pills */
+    .pill-closed { background: #E3F2FD; color: #1E88E5; border: 1px solid #BBDEFB; } 
+    .pill-open { background: #FFF3E0; color: #F57C00; border: 1px solid #FFE0B2; } 
   </style>
 </head>
 <body class="p-6">
 
-  <div class="bg-shape shape-1"></div>
-  <div class="bg-shape shape-2"></div>
-
   <div class="flex flex-col md:flex-row justify-between items-center mb-8 glass-panel">
     <div>
       <h1 class="text-3xl font-bold tracking-wide">Global Refund Tracker</h1>
-      <p class="text-sm opacity-80 mt-1">Analytics Dashboard</p>
+      <p class="text-sm opacity-60 mt-1 text-gray-500">Analytics Dashboard</p>
     </div>
     <div class="mt-4 md:mt-0 flex items-center gap-4">
-      <label class="font-semibold">Select Month:</label>
+      <label class="font-semibold text-gray-600">Select Month:</label>
       <select id="monthFilter" class="glass-select" onchange="renderDashboard()">
         <option value="All">Loading...</option>
       </select>
@@ -140,7 +164,7 @@
       <canvas id="pieChartStatus"></canvas>
     </div>
 
-    <div class="glass-panel hover:border-white/40 transition-colors">
+    <div class="glass-panel transition-colors">
       <div class="flex justify-between items-start">
         <h3 class="text-lg font-semibold mb-4">Highest Refund Category (By Amount)</h3>
         <div class="flex gap-2 text-[9px]">
@@ -152,11 +176,11 @@
           <button onclick="setChartFilter('barChartCategory', 'Spain')" class="market-filter market-filter-Spain-barChartCategory">ES</button>
         </div>
       </div>
-      <p class="text-xs opacity-70 mb-2">Based on <b>Closed</b> tickets only.</p>
+      <p class="text-xs opacity-70 mb-2 text-gray-400">Based on <b>Closed</b> tickets only.</p>
       <canvas id="barChartCategory"></canvas>
     </div>
 
-    <div class="glass-panel hover:border-white/40 transition-colors">
+    <div class="glass-panel transition-colors">
       <div class="flex justify-between items-start">
         <h3 class="text-lg font-semibold mb-4">Highest Refund Subcategory (By Amount)</h3>
         <div class="flex gap-2 text-[9px]">
@@ -168,11 +192,11 @@
           <button onclick="setChartFilter('barChartSubcategory', 'Spain')" class="market-filter market-filter-Spain-barChartSubcategory">ES</button>
         </div>
       </div>
-      <p class="text-xs opacity-70 mb-2">Based on <b>Closed</b> tickets only.</p>
+      <p class="text-xs opacity-70 mb-2 text-gray-400">Based on <b>Closed</b> tickets only.</p>
       <canvas id="barChartSubcategory"></canvas>
     </div>
 
-    <div class="glass-panel hover:border-white/40 transition-colors">
+    <div class="glass-panel transition-colors">
       <div class="flex justify-between items-start">
         <h3 class="text-lg font-semibold mb-4">Highest Refund Property (By Amount)</h3>
         <div class="flex gap-2 text-[9px]">
@@ -184,11 +208,11 @@
           <button onclick="setChartFilter('barChartPropertyAmt', 'Spain')" class="market-filter market-filter-Spain-barChartPropertyAmt">ES</button>
         </div>
       </div>
-      <p class="text-xs opacity-70 mb-2">Based on <b>Closed</b> tickets only.</p>
+      <p class="text-xs opacity-70 mb-2 text-gray-400">Based on <b>Closed</b> tickets only.</p>
       <canvas id="barChartPropertyAmt"></canvas>
     </div>
 
-    <div class="glass-panel hover:border-white/40 transition-colors">
+    <div class="glass-panel transition-colors">
       <div class="flex justify-between items-start">
         <h3 class="text-lg font-semibold mb-4">Most Repeated Property ID (3-Month Rolling)</h3>
         <div class="flex gap-2 text-[9px]">
@@ -200,29 +224,29 @@
           <button onclick="setChartFilter('barChartPropertyCount', 'Spain')" class="market-filter market-filter-Spain-barChartPropertyCount">ES</button>
         </div>
       </div>
-      <p class="text-xs opacity-70 mb-2">Most tickets (Open & Closed) in last 3 months.</p>
+      <p class="text-xs opacity-70 mb-2 text-gray-400">Most tickets (Open & Closed) in last 3 months.</p>
       <canvas id="barChartPropertyCount"></canvas>
     </div>
 
-    <div class="glass-panel hover:border-white/40 transition-colors">
+    <div class="glass-panel transition-colors">
       <div class="flex justify-between items-start">
         <h3 class="text-lg font-semibold mb-4">Missing Categories</h3>
       </div>
-      <p class="text-xs opacity-70 mb-2">Tickets with status <b>Closed</b> or <b>Multiple</b> that have missing/empty categories.</p>
+      <p class="text-xs opacity-70 mb-2 text-gray-400">Tickets with status <b>Closed</b> or <b>Multiple</b> that have missing/empty categories.</p>
       <canvas id="pieChartMissing"></canvas>
     </div>
 
   </div>
 
-  <div id="dataModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-    <div class="glass-panel w-full max-w-5xl h-[85vh] flex flex-col relative animate-scaleIn shadow-2xl border border-white/30">
+  <div id="dataModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="glass-panel w-full max-w-5xl h-[85vh] flex flex-col relative animate-scaleIn shadow-2xl border-0">
       
-      <div class="flex justify-between items-center mb-6 pb-4 border-b border-white/20">
+      <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
         <div>
           <h2 id="modalTitle" class="text-2xl font-bold">Details</h2>
-          <p id="modalSubtitle" class="text-sm opacity-70 mt-1">Filtered View</p>
+          <p id="modalSubtitle" class="text-sm opacity-70 mt-1 text-gray-500">Filtered View</p>
         </div>
-        <button onclick="closeModal()" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+        <button onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -231,7 +255,7 @@
 
       <div class="overflow-auto flex-1 table-container">
         <table class="w-full text-left text-sm border-separate border-spacing-0">
-          <thead class="sticky top-0 bg-[#667eea] z-10 shadow-lg">
+          <thead class="sticky top-0 bg-white z-10 shadow-sm">
             <tr>
               <th class="p-4 rounded-tl-lg">Date</th>
               <th class="p-4">Ticket ID</th>
@@ -242,12 +266,12 @@
               <th class="p-4">Refund Status</th> <th class="p-4 text-right rounded-tr-lg">Amount</th>
             </tr>
           </thead>
-          <tbody id="modalTableBody" class="bg-white/5">
+          <tbody id="modalTableBody" class="bg-white">
             </tbody>
         </table>
       </div>
       
-      <div class="mt-4 pt-4 border-t border-white/10 text-right text-xs opacity-50">
+      <div class="mt-4 pt-4 border-t border-gray-200 text-right text-xs opacity-50 text-gray-400">
         Showing filtered results based on selection.
       </div>
 
@@ -258,7 +282,16 @@
     let rawData = [];
     let chartInstances = {};
     const markets = ['Portugal', 'France', 'UK', 'Dubai', 'Spain'];
-    const marketColors = ['#F87171', '#60A5FA', '#34D399', '#FBBF24', '#A78BFA'];
+    
+    // PALETTE: Salmon, Blue, Cream (used for logic), PinkWhite, GreyBlue
+    // For Charts, we need distinct colors.
+    // 0: Salmon #F58F79
+    // 1: Blue #8BA8E3
+    // 2: GreyBlue #DBDFEC
+    // 3: Gold/Yellow (Custom to fit) -> Let's use #FCD34D
+    // 4: Pink #FFEAE5
+    const marketColors = ['#F58F79', '#8BA8E3', '#A5B4FC', '#FCD34D', '#DBDFEC'];
+    
     let chartFilters = {
       'barChartCategory': 'All',
       'barChartSubcategory': 'All',
@@ -295,7 +328,7 @@
         ticketId: findIdx(['ticket id', 'ticket']),
         propertyId: findIdx(['property id', 'property']),
         status: findIdx(['status']),
-        refundStatus: findIdx(['refund status']), // Mapped Refund Status column
+        refundStatus: findIdx(['refund status']),
         category: findIdx(['refund category', 'category']),
         subcategory: findIdx(['refund subcategory', 'subcategory'])
       };
@@ -317,7 +350,7 @@
           subcategory: row[idx.subcategory],
           propertyId: row[idx.propertyId],
           status: statusRaw,
-          refundStatus: row[idx.refundStatus] // Capture Refund Status data
+          refundStatus: row[idx.refundStatus]
         };
       }).filter(d => d.date);
 
@@ -351,7 +384,6 @@
       
       select.innerHTML = '';
       
-      // Add "All" option
       const allOpt = document.createElement('option');
       allOpt.value = 'All';
       allOpt.innerText = 'All Months';
@@ -373,14 +405,9 @@
     }
 
     function getExchangeRate(market) {
-      // Exchange rates to EUR (approximate, can be updated as needed)
       const rates = {
-        'Portugal': 1.0,
-        'France': 1.0,
-        'Spain': 1.0,
-        'UK': 0.84,
-        'Dubai': 0.27,
-        'Other': 1.0
+        'Portugal': 1.0, 'France': 1.0, 'Spain': 1.0,
+        'UK': 0.84, 'Dubai': 0.27, 'Other': 1.0
       };
       return rates[market] || rates['Other'];
     }
@@ -398,7 +425,6 @@
       tbody.innerHTML = '';
 
       if (dataRows.length === 0) {
-        // Increased colspan to 8 to account for the new column
         tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center opacity-50">No matching records found.</td></tr>`;
       } else {
         dataRows.forEach(row => {
@@ -406,14 +432,16 @@
           const currency = getCurrency(row.country);
           const amtStr = currency === ' AED' ? row.amount.toFixed(2) + currency : currency + row.amount.toFixed(2);
           
+          const statusClass = row.status.toLowerCase().includes('closed') ? 'pill-closed' : 'pill-open';
+          
           tr.innerHTML = `
             <td class="p-4 whitespace-nowrap">${row.dateDisplay}</td>
-            <td class="p-4 font-mono text-xs bg-white/5 rounded">${row.ticketId || '-'}</td>
+            <td class="p-4 font-mono text-xs bg-gray-50 rounded text-gray-600">${row.ticketId || '-'}</td>
             <td class="p-4">${row.propertyId || '-'}</td>
             <td class="p-4">${row.category || '-'}</td>
             <td class="p-4">${row.subcategory || '-'}</td>
-            <td class="p-4"><span class="px-2 py-1 rounded text-xs ${row.status.toLowerCase().includes('closed') ? 'bg-green-500/20 text-green-200' : 'bg-yellow-500/20 text-yellow-200'}">${row.status}</span></td>
-            <td class="p-4">${row.refundStatus || '-'}</td> <td class="p-4 text-right font-bold">${amtStr}</td>
+            <td class="p-4"><span class="px-2 py-1 rounded text-xs ${statusClass}">${row.status}</span></td>
+            <td class="p-4">${row.refundStatus || '-'}</td> <td class="p-4 text-right font-bold text-gray-700">${amtStr}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -430,7 +458,6 @@
       modal.classList.remove('flex');
     }
 
-    // NEW: Helper for Key Cards to handle "All" logic
     function openKeyCardModal(market) {
       const monthFilter = document.getElementById('monthFilter').value;
       const data = rawData.filter(d => 
@@ -440,7 +467,6 @@
       openModal(`${market} Refunds`, `Tickets for ${monthFilter === 'All' ? 'All Months' : monthFilter}`, data);
     }
 
-    // Close on click outside
     document.getElementById('dataModal').addEventListener('click', function(e) {
       if (e.target === this) closeModal();
     });
@@ -449,15 +475,11 @@
     function setChartFilter(chartId, market) {
       chartFilters[chartId] = market;
       
-      // Update button styles
       document.querySelectorAll(`.market-filter-All-${chartId}, .market-filter-Portugal-${chartId}, .market-filter-France-${chartId}, .market-filter-UK-${chartId}, .market-filter-Dubai-${chartId}, .market-filter-Spain-${chartId}`).forEach(btn => {
-        btn.classList.remove('active', 'bg-white/30');
-        btn.classList.add('opacity-60');
+        btn.classList.remove('active');
       });
-      document.querySelector(`.market-filter-${market}-${chartId}`).classList.remove('opacity-60');
-      document.querySelector(`.market-filter-${market}-${chartId}`).classList.add('active', 'bg-white/30');
+      document.querySelector(`.market-filter-${market}-${chartId}`).classList.add('active');
       
-      // Re-render the chart with the filtered data
       if (chartData[chartId]) {
         renderSpecificChart(chartId, chartData[chartId].winnerData, chartData[chartId].type, chartData[chartId].filterField, chartData[chartId].sourceData);
       }
@@ -470,12 +492,10 @@
       const selectedFilter = chartFilters[chartId];
       
       if (selectedFilter !== 'All') {
-        // Single market mode: Show top 4 for this market
         const marketData = winnerData.filter(w => w.market === selectedFilter);
         if (marketData.length > 0) {
           const singleMarket = marketData[0];
           
-          // Get all items for this market, sorted by value descending, take top 4
           const allItemsForMarket = sourceData
             .filter(d => d.country === selectedFilter)
             .reduce((acc, row) => {
@@ -495,7 +515,6 @@
             })
             .slice(0, 4);
           
-          // Create display data for top 4
           displayData = sortedItems.map((item, idx) => ({
             name: item.name,
             val: type === 'count' ? item.count : item.amt,
@@ -547,33 +566,32 @@
           `${total.toLocaleString(undefined, {maximumFractionDigits:0})} AED` : 
           `${curr}${total.toLocaleString(undefined, {maximumFractionDigits:0})}`;
 
-        // UPDATED ONCLICK to use helper function
         container.innerHTML += `
           <div class="glass-card" onclick="openKeyCardModal('${market}')">
-            <h4 class="text-sm uppercase tracking-widest opacity-70">${market}</h4>
-            <div class="text-2xl font-bold mt-2">${displayStr}</div>
-            <div class="text-xs mt-2 opacity-60">${mData.length} refunds <span class="float-right">Click to view</span></div>
+            <h4 class="text-xs font-bold uppercase tracking-widest text-[#8BA8E3]">${market}</h4>
+            <div class="text-2xl font-bold mt-2 text-[#444]">${displayStr}</div>
+            <div class="text-xs mt-2 text-gray-400">${mData.length} refunds <span class="float-right hover:text-[#8BA8E3]">View Details &rarr;</span></div>
           </div>`;
       });
       
-      // Add Total GR Refund (In Euro) card
       const totalAllMarkets = data.reduce((sum, d) => sum + convertToEUR(d.amount, d.country), 0);
       container.innerHTML += `
-        <div class="glass-card">
-          <h4 class="text-sm uppercase tracking-widest opacity-70">Total GR Refund</h4>
-          <div class="text-2xl font-bold mt-2">€${totalAllMarkets.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
-          <div class="text-xs mt-2 opacity-60">All Markets in EUR</div>
+        <div class="glass-card border-[#8BA8E3] shadow-md">
+          <h4 class="text-xs font-bold uppercase tracking-widest text-[#F58F79]">Total GR Refund</h4>
+          <div class="text-2xl font-bold mt-2 text-[#444]">€${totalAllMarkets.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
+          <div class="text-xs mt-2 text-gray-400">All Markets in EUR</div>
         </div>`;
     }
 
     function renderCharts(monthlyData, rollingData) {
+      // Updated Options for Visibility on White
       const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { display: false } }, 
         scales: {
-          y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'white' } },
-          x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'white' } }
+          y: { grid: { color: '#F0F0F0' }, ticks: { color: '#666' } },
+          x: { grid: { color: '#F0F0F0' }, ticks: { color: '#666' } }
         }
       };
 
@@ -583,10 +601,11 @@
         label: m,
         data: months.map(mon => rawData.filter(d => d.country === m && d.monthStr === mon).length),
         borderColor: marketColors[i],
+        backgroundColor: marketColors[i],
         tension: 0.4
       }));
       createChart('lineChartTickets', 'line', { labels: months, datasets: lineDatasets }, 
-        { ...commonOptions, plugins: { legend: { display: true, labels: { color: 'white' } } } });
+        { ...commonOptions, plugins: { legend: { display: true, labels: { color: '#444' } } } });
 
       // 2. Status
       const statuses = [...new Set(monthlyData.map(d => d.status))];
@@ -595,10 +614,11 @@
         labels: statuses,
         datasets: [{
           data: statusCounts,
-          backgroundColor: ['#34D399', '#FBBF24', '#F87171', '#60A5FA', '#A78BFA'],
-          borderColor: 'rgba(255,255,255,0.1)'
+          backgroundColor: marketColors,
+          borderColor: '#FFFFFF',
+          borderWidth: 2
         }]
-      }, { ...commonOptions, plugins: { legend: { position: 'right', labels: { color: 'white' } } } });
+      }, { ...commonOptions, plugins: { legend: { position: 'right', labels: { color: '#444' } } }, scales: { x: {display:false}, y: {display:false} } });
 
       // --- FILTER LOGIC ---
       const closedData = monthlyData.filter(d => d.status.toLowerCase().includes('closed'));
@@ -658,13 +678,12 @@
       chartData['barChartPropertyCount'] = { winnerData: topPropCount, type: 'count', filterField: 'propertyId', sourceData: rollingData };
       renderSpecificChart('barChartPropertyCount', topPropCount, 'count', 'propertyId', rollingData);
 
-      // 7. Missing Categories (Moved to bottom & Changed to Pie)
+      // 7. Missing Categories
       const closedOrMultipleData = monthlyData.filter(d => 
         d.status.toLowerCase().includes('closed') || d.status.toLowerCase().includes('multiple')
       );
       
       const missingCountsByMarket = markets.map(m => {
-        // Count tickets where category is missing/empty
         return closedOrMultipleData.filter(d => d.country === m && (!d.category || d.category.trim() === '')).length;
       });
 
@@ -673,12 +692,14 @@
         datasets: [{
           data: missingCountsByMarket,
           backgroundColor: marketColors,
-          borderColor: 'rgba(255,255,255,0.1)'
+          borderColor: '#FFFFFF',
+          borderWidth: 2
         }]
       }, {
         ...commonOptions,
+        scales: { x: {display:false}, y: {display:false} },
         plugins: { 
-          legend: { position: 'right', labels: { color: 'white' } },
+          legend: { position: 'right', labels: { color: '#444' } },
           tooltip: {
             callbacks: {
               label: function(context) {
@@ -688,12 +709,10 @@
             }
           }
         },
-        // Custom Click Handler for Missing Categories Pie Chart
         onClick: (e, elements) => {
           if(elements.length > 0) {
             const idx = elements[0].index;
             const market = markets[idx];
-            // Filter logic: Country matches AND category is empty/null
             const details = closedOrMultipleData.filter(d => 
                d.country === market && (!d.category || d.category.trim() === '')
             );
@@ -706,7 +725,6 @@
       });
     }
 
-    // UPDATED: createBarChart now accepts sourceData and filterField, and optional displayLabels
     function createBarChart(canvasId, winnerData, type, filterField, sourceData, displayLabels) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
@@ -714,13 +732,15 @@
       const labels = displayLabels || markets;
       const isSingleMarket = chartFilters[canvasId] !== 'All';
 
+      const singleMarketColors = [marketColors[1], marketColors[0], marketColors[4], marketColors[2]]; 
+
       chartInstances[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
           datasets: [{
             data: winnerData.map(w => w.val),
-            backgroundColor: isSingleMarket ? ['#667eea', '#764ba2', '#667eea', '#764ba2'].slice(0, winnerData.length) : marketColors,
+            backgroundColor: isSingleMarket ? singleMarketColors.slice(0, winnerData.length) : marketColors,
             borderRadius: 6
           }]
         },
@@ -755,24 +775,17 @@
               }
             }
           },
-          // UPDATED INTERACTIVITY
           onClick: (e, elements) => {
             if (elements.length > 0) {
               const idx = elements[0].index;
               const item = winnerData[idx];
-              
-              if (item.name === 'N/A') return; // Don't click if no data
-
-              // Filter sourceData handling 'Unknown' vs empty strings
+              if (item.name === 'N/A') return;
               const details = sourceData.filter(d => {
                  const valToCheck = d[filterField] || 'Unknown';
                  return d.country === item.market && valToCheck === item.name;
               });
-
-              // Construct Title
               const title = `Details for ${item.market}`;
               const subtitle = `Filter: ${filterField} = "${item.name}"`;
-
               openModal(title, subtitle, details);
             }
           },
@@ -780,8 +793,8 @@
             event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
           },
           scales: {
-            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'white' } },
-            x: { grid: { display: false }, ticks: { color: 'white', font: { weight: 'bold' } } }
+            y: { beginAtZero: true, grid: { color: '#F0F0F0' }, ticks: { color: '#666' } },
+            x: { grid: { display: false }, ticks: { color: '#444', font: { weight: 'bold' } } }
           }
         }
       });
