@@ -239,7 +239,7 @@
               <th class="p-4">Category</th>
               <th class="p-4">Subcategory</th>
               <th class="p-4">Status</th>
-              <th class="p-4 text-right rounded-tr-lg">Amount</th>
+              <th class="p-4">Refund Status</th> <th class="p-4 text-right rounded-tr-lg">Amount</th>
             </tr>
           </thead>
           <tbody id="modalTableBody" class="bg-white/5">
@@ -295,6 +295,7 @@
         ticketId: findIdx(['ticket id', 'ticket']),
         propertyId: findIdx(['property id', 'property']),
         status: findIdx(['status']),
+        refundStatus: findIdx(['refund status']), // Mapped Refund Status column
         category: findIdx(['refund category', 'category']),
         subcategory: findIdx(['refund subcategory', 'subcategory'])
       };
@@ -315,7 +316,8 @@
           category: row[idx.category],
           subcategory: row[idx.subcategory],
           propertyId: row[idx.propertyId],
-          status: statusRaw
+          status: statusRaw,
+          refundStatus: row[idx.refundStatus] // Capture Refund Status data
         };
       }).filter(d => d.date);
 
@@ -396,7 +398,8 @@
       tbody.innerHTML = '';
 
       if (dataRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center opacity-50">No matching records found.</td></tr>`;
+        // Increased colspan to 8 to account for the new column
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center opacity-50">No matching records found.</td></tr>`;
       } else {
         dataRows.forEach(row => {
           const tr = document.createElement('tr');
@@ -410,7 +413,7 @@
             <td class="p-4">${row.category || '-'}</td>
             <td class="p-4">${row.subcategory || '-'}</td>
             <td class="p-4"><span class="px-2 py-1 rounded text-xs ${row.status.toLowerCase().includes('closed') ? 'bg-green-500/20 text-green-200' : 'bg-yellow-500/20 text-yellow-200'}">${row.status}</span></td>
-            <td class="p-4 text-right font-bold">${amtStr}</td>
+            <td class="p-4">${row.refundStatus || '-'}</td> <td class="p-4 text-right font-bold">${amtStr}</td>
           `;
           tbody.appendChild(tr);
         });
