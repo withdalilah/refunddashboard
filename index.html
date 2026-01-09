@@ -27,7 +27,7 @@
     /* Remove floating shapes */
     .bg-shape { display: none; }
 
-    /* Card Styling (Replaces Glass) */
+    /* Card Styling */
     .glass-panel {
       background: #FFFFFF;
       border-radius: 16px;
@@ -40,7 +40,7 @@
     .glass-card {
       background: #FFFFFF;
       border-radius: 12px;
-      padding: 12px; /* Reduced padding from 20px to 12px for compact fit */
+      padding: 12px; /* Reduced padding */
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -49,7 +49,7 @@
       color: #444;
       border: 1px solid #DBDFEC;
       box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-      min-width: 0; /* Ensures flex/grid items can shrink below content size if needed */
+      min-width: 0;
     }
     .glass-card:hover { 
       transform: translateY(-3px); 
@@ -71,7 +71,7 @@
 
     /* Market Filter Buttons */
     .market-filter {
-      background: #F3F4E3; /* Light Cream bg for inactive */
+      background: #F3F4E3;
       border: 1px solid #DBDFEC;
       color: #666;
       padding: 6px 12px;
@@ -153,7 +153,9 @@
     }
   </style>
 </head>
-<body class="p-4 md:p-6"> <div class="flex flex-col md:flex-row justify-between items-center mb-6 glass-panel">
+<body class="p-4 md:p-6">
+
+  <div class="flex flex-col md:flex-row justify-between items-center mb-6 glass-panel">
     <div>
       <h1 class="text-3xl font-bold tracking-wide">Global Refund Tracker</h1>
       <p class="text-sm opacity-60 mt-1 text-gray-500">Analytics Dashboard</p>
@@ -172,6 +174,7 @@
 
     <div class="glass-panel">
       <h3 class="text-lg font-semibold mb-4">Ticket Volume Trend</h3>
+      <p class="text-xs opacity-70 mb-2 text-gray-400">Click on any point to view details.</p>
       <canvas id="lineChartTickets"></canvas>
     </div>
 
@@ -188,9 +191,9 @@
           <button onclick="setChartFilter('barChartCategory', 'Portugal')" class="market-filter market-filter-Portugal-barChartCategory">PT</button>
           <button onclick="setChartFilter('barChartCategory', 'France')" class="market-filter market-filter-France-barChartCategory">FR</button>
           <button onclick="setChartFilter('barChartCategory', 'UK')" class="market-filter market-filter-UK-barChartCategory">UK</button>
+          <button onclick="setChartFilter('barChartCategory', 'Ireland')" class="market-filter market-filter-Ireland-barChartCategory">IE</button>
           <button onclick="setChartFilter('barChartCategory', 'Dubai')" class="market-filter market-filter-Dubai-barChartCategory">AE</button>
           <button onclick="setChartFilter('barChartCategory', 'Spain')" class="market-filter market-filter-Spain-barChartCategory">ES</button>
-          <button onclick="setChartFilter('barChartCategory', 'Ireland')" class="market-filter market-filter-Ireland-barChartCategory">IE</button>
         </div>
       </div>
       <p class="text-xs opacity-70 mb-2 text-gray-400">Based on <b>Closed</b> tickets only.</p>
@@ -205,9 +208,9 @@
           <button onclick="setChartFilter('barChartSubcategory', 'Portugal')" class="market-filter market-filter-Portugal-barChartSubcategory">PT</button>
           <button onclick="setChartFilter('barChartSubcategory', 'France')" class="market-filter market-filter-France-barChartSubcategory">FR</button>
           <button onclick="setChartFilter('barChartSubcategory', 'UK')" class="market-filter market-filter-UK-barChartSubcategory">UK</button>
+          <button onclick="setChartFilter('barChartSubcategory', 'Ireland')" class="market-filter market-filter-Ireland-barChartSubcategory">IE</button>
           <button onclick="setChartFilter('barChartSubcategory', 'Dubai')" class="market-filter market-filter-Dubai-barChartSubcategory">AE</button>
           <button onclick="setChartFilter('barChartSubcategory', 'Spain')" class="market-filter market-filter-Spain-barChartSubcategory">ES</button>
-          <button onclick="setChartFilter('barChartSubcategory', 'Ireland')" class="market-filter market-filter-Ireland-barChartSubcategory">IE</button>
         </div>
       </div>
       <p class="text-xs opacity-70 mb-2 text-gray-400">Based on <b>Closed</b> tickets only.</p>
@@ -222,9 +225,9 @@
           <button onclick="setChartFilter('barChartPropertyAmt', 'Portugal')" class="market-filter market-filter-Portugal-barChartPropertyAmt">PT</button>
           <button onclick="setChartFilter('barChartPropertyAmt', 'France')" class="market-filter market-filter-France-barChartPropertyAmt">FR</button>
           <button onclick="setChartFilter('barChartPropertyAmt', 'UK')" class="market-filter market-filter-UK-barChartPropertyAmt">UK</button>
+          <button onclick="setChartFilter('barChartPropertyAmt', 'Ireland')" class="market-filter market-filter-Ireland-barChartPropertyAmt">IE</button>
           <button onclick="setChartFilter('barChartPropertyAmt', 'Dubai')" class="market-filter market-filter-Dubai-barChartPropertyAmt">AE</button>
           <button onclick="setChartFilter('barChartPropertyAmt', 'Spain')" class="market-filter market-filter-Spain-barChartPropertyAmt">ES</button>
-          <button onclick="setChartFilter('barChartPropertyAmt', 'Ireland')" class="market-filter market-filter-Ireland-barChartPropertyAmt">IE</button>
         </div>
       </div>
       <p class="text-xs opacity-70 mb-2 text-gray-400">Based on <b>Closed</b> tickets only.</p>
@@ -239,9 +242,9 @@
           <button onclick="setChartFilter('barChartPropertyCount', 'Portugal')" class="market-filter market-filter-Portugal-barChartPropertyCount">PT</button>
           <button onclick="setChartFilter('barChartPropertyCount', 'France')" class="market-filter market-filter-France-barChartPropertyCount">FR</button>
           <button onclick="setChartFilter('barChartPropertyCount', 'UK')" class="market-filter market-filter-UK-barChartPropertyCount">UK</button>
+          <button onclick="setChartFilter('barChartPropertyCount', 'Ireland')" class="market-filter market-filter-Ireland-barChartPropertyCount">IE</button>
           <button onclick="setChartFilter('barChartPropertyCount', 'Dubai')" class="market-filter market-filter-Dubai-barChartPropertyCount">AE</button>
           <button onclick="setChartFilter('barChartPropertyCount', 'Spain')" class="market-filter market-filter-Spain-barChartPropertyCount">ES</button>
-          <button onclick="setChartFilter('barChartPropertyCount', 'Ireland')" class="market-filter market-filter-Ireland-barChartPropertyCount">IE</button>
         </div>
       </div>
       <p class="text-xs opacity-70 mb-2 text-gray-400">Most tickets (Open & Closed) in last 3 months. Excludes duplicates.</p>
@@ -309,8 +312,13 @@
   <script>
     let rawData = [];
     let chartInstances = {};
-    const markets = ['Portugal', 'France', 'UK', 'Dubai', 'Spain', 'Ireland'];
-    const marketColors = ['#F58F79', '#8BA8E3', '#A5B4FC', '#FCD34D', '#DBDFEC', '#82CA9D'];
+    
+    // UPDATED: Reordered markets to put Ireland next to UK
+    const markets = ['Portugal', 'France', 'UK', 'Ireland', 'Dubai', 'Spain'];
+    
+    // UPDATED: Reordered colors to match the market order
+    // Portugal (Salmon), France (Blue), UK (GreyBlue), Ireland (SoftGreen), Dubai (Gold), Spain (Pink)
+    const marketColors = ['#F58F79', '#8BA8E3', '#A5B4FC', '#82CA9D', '#FCD34D', '#DBDFEC'];
     
     let chartFilters = {
       'barChartCategory': 'All',
@@ -619,7 +627,6 @@
           `${total.toLocaleString(undefined, {maximumFractionDigits:0})} AED` : 
           `${curr}${total.toLocaleString(undefined, {maximumFractionDigits:0})}`;
 
-        // Reduced text-2xl to text-xl for compactness
         container.innerHTML += `
           <div class="glass-card" onclick="openKeyCardModal('${market}')">
             <h4 class="text-xs font-bold uppercase tracking-widest text-[#8BA8E3] truncate">${market}</h4>
@@ -628,6 +635,8 @@
           </div>`;
       });
       
+      // Verification: This effectively sums all market cards after converting each transaction to EUR.
+      // E.g. (Total GBP * 0.84) + (Total AED * 0.27) + (Total EUR * 1.0) ...
       const totalAllMarkets = data.reduce((sum, d) => sum + convertToEUR(d.amount, d.country), 0);
       container.innerHTML += `
         <div class="glass-card border-[#8BA8E3] shadow-md">
@@ -648,7 +657,7 @@
         }
       };
 
-      // 1. Timeline
+      // 1. Timeline (Interactive)
       const months = [...new Set(rawData.map(d => d.monthStr))].sort((a,b) => new Date(a) - new Date(b));
       const lineDatasets = markets.map((m, i) => ({
         label: m,
@@ -657,8 +666,44 @@
         backgroundColor: marketColors[i],
         tension: 0.4
       }));
-      createChart('lineChartTickets', 'line', { labels: months, datasets: lineDatasets }, 
-        { ...commonOptions, plugins: { legend: { display: true, labels: { color: '#444' } } } });
+
+      // UPDATED: Added click interaction to the line chart
+      const lineChartOptions = {
+        ...commonOptions,
+        plugins: { 
+          legend: { display: true, labels: { color: '#444' } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.dataset.label}: ${context.raw} Tickets`;
+              }
+            }
+          }
+        },
+        onClick: (e, elements) => {
+          if (elements.length > 0) {
+            const idx = elements[0].index;
+            const datasetIdx = elements[0].datasetIndex;
+            
+            const selectedMonth = months[idx];
+            const selectedMarket = markets[datasetIdx];
+            
+            // Filter raw data for this specific point
+            const details = rawData.filter(d => d.country === selectedMarket && d.monthStr === selectedMonth);
+            
+            openModal(
+              `${selectedMarket} - ${selectedMonth}`, 
+              `Ticket Volume Details (${details.length} Tickets)`, 
+              details
+            );
+          }
+        },
+        onHover: (event, chartElement) => {
+          event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+        }
+      };
+
+      createChart('lineChartTickets', 'line', { labels: months, datasets: lineDatasets }, lineChartOptions);
 
       // 2. Status
       const statuses = [...new Set(monthlyData.map(d => d.status))];
