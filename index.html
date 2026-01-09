@@ -40,7 +40,7 @@
     .glass-card {
       background: #FFFFFF;
       border-radius: 12px;
-      padding: 20px;
+      padding: 12px; /* Reduced padding from 20px to 12px for compact fit */
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -49,6 +49,7 @@
       color: #444;
       border: 1px solid #DBDFEC;
       box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      min-width: 0; /* Ensures flex/grid items can shrink below content size if needed */
     }
     .glass-card:hover { 
       transform: translateY(-3px); 
@@ -152,9 +153,7 @@
     }
   </style>
 </head>
-<body class="p-6">
-
-  <div class="flex flex-col md:flex-row justify-between items-center mb-8 glass-panel">
+<body class="p-4 md:p-6"> <div class="flex flex-col md:flex-row justify-between items-center mb-6 glass-panel">
     <div>
       <h1 class="text-3xl font-bold tracking-wide">Global Refund Tracker</h1>
       <p class="text-sm opacity-60 mt-1 text-gray-500">Analytics Dashboard</p>
@@ -167,7 +166,7 @@
     </div>
   </div>
 
-  <div id="kpi-container" class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8"></div>
+  <div id="kpi-container" class="grid grid-cols-2 md:grid-cols-7 gap-2 mb-8"></div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -310,16 +309,7 @@
   <script>
     let rawData = [];
     let chartInstances = {};
-    // Included Ireland in the markets list
     const markets = ['Portugal', 'France', 'UK', 'Dubai', 'Spain', 'Ireland'];
-    
-    // PALETTE: Added #82CA9D (Soft Green) for Ireland
-    // 0: Salmon #F58F79
-    // 1: Blue #8BA8E3
-    // 2: GreyBlue #DBDFEC
-    // 3: Gold/Yellow #FCD34D
-    // 4: Pink #FFEAE5
-    // 5: Soft Green #82CA9D
     const marketColors = ['#F58F79', '#8BA8E3', '#A5B4FC', '#FCD34D', '#DBDFEC', '#82CA9D'];
     
     let chartFilters = {
@@ -330,7 +320,7 @@
       'barChartMissingCategory': 'All'
     };
     let chartData = {};
-    let currentModalData = []; // Store data for export
+    let currentModalData = [];
 
     window.onload = function() {
       google.script.run.withSuccessHandler(onDataLoaded).getSheetData();
@@ -389,7 +379,6 @@
       renderDashboard();
     }
 
-    // --- Helpers ---
     function parseDate(str) {
       if (!str) return null;
       const parts = str.split(' ')[0].split('/');
@@ -405,7 +394,6 @@
     function normalizeCountry(c) {
       if (!c) return 'Other';
       if (c.toLowerCase().includes('united kingdom')) return 'UK';
-      // Basic normalization for Ireland if needed, usually matches "Ireland"
       return c.trim();
     }
 
@@ -448,9 +436,9 @@
       return amount * getExchangeRate(market);
     }
 
-    // --- MODAL LOGIC ---
+    // --- MODAL & EXPORT LOGIC ---
     function openModal(title, subtitle, dataRows) {
-      currentModalData = dataRows; // Store for export
+      currentModalData = dataRows;
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalSubtitle').innerText = subtitle;
       
@@ -500,12 +488,10 @@
       openModal(`${market} Refunds`, `Tickets for ${monthFilter === 'All' ? 'All Months' : monthFilter}`, data);
     }
 
-    // --- Export Function ---
     function downloadCSV() {
       if (!currentModalData || currentModalData.length === 0) return;
 
       const headers = ['Date', 'Ticket ID', 'Property', 'Category', 'Subcategory', 'Status', 'Refund Status', 'Amount', 'Country'];
-      
       const csvRows = [headers.join(',')];
 
       currentModalData.forEach(row => {
@@ -543,7 +529,6 @@
     function setChartFilter(chartId, market) {
       chartFilters[chartId] = market;
       
-      // Updated selector to include Ireland
       document.querySelectorAll(`.market-filter-All-${chartId}, .market-filter-Portugal-${chartId}, .market-filter-France-${chartId}, .market-filter-UK-${chartId}, .market-filter-Dubai-${chartId}, .market-filter-Spain-${chartId}, .market-filter-Ireland-${chartId}`).forEach(btn => {
         btn.classList.remove('active');
       });
@@ -599,7 +584,6 @@
     }
 
     // --- Main Rendering ---
-
     function renderDashboard() {
       const selectedMonth = document.getElementById('monthFilter').value;
       
@@ -635,25 +619,25 @@
           `${total.toLocaleString(undefined, {maximumFractionDigits:0})} AED` : 
           `${curr}${total.toLocaleString(undefined, {maximumFractionDigits:0})}`;
 
+        // Reduced text-2xl to text-xl for compactness
         container.innerHTML += `
           <div class="glass-card" onclick="openKeyCardModal('${market}')">
-            <h4 class="text-xs font-bold uppercase tracking-widest text-[#8BA8E3]">${market}</h4>
-            <div class="text-2xl font-bold mt-2 text-[#444]">${displayStr}</div>
-            <div class="text-xs mt-2 text-gray-400">${mData.length} refunds <span class="float-right hover:text-[#8BA8E3]">View Details &rarr;</span></div>
+            <h4 class="text-xs font-bold uppercase tracking-widest text-[#8BA8E3] truncate">${market}</h4>
+            <div class="text-xl font-bold mt-1 text-[#444] truncate">${displayStr}</div>
+            <div class="text-[10px] mt-1 text-gray-400 truncate">${mData.length} refunds <span class="hidden xl:inline float-right hover:text-[#8BA8E3]">View</span></div>
           </div>`;
       });
       
       const totalAllMarkets = data.reduce((sum, d) => sum + convertToEUR(d.amount, d.country), 0);
       container.innerHTML += `
         <div class="glass-card border-[#8BA8E3] shadow-md">
-          <h4 class="text-xs font-bold uppercase tracking-widest text-[#F58F79]">Total GR Refund</h4>
-          <div class="text-2xl font-bold mt-2 text-[#444]">€${totalAllMarkets.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
-          <div class="text-xs mt-2 text-gray-400">All Markets in EUR</div>
+          <h4 class="text-xs font-bold uppercase tracking-widest text-[#F58F79] truncate">Total</h4>
+          <div class="text-xl font-bold mt-1 text-[#444] truncate">€${totalAllMarkets.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
+          <div class="text-[10px] mt-1 text-gray-400 truncate">EUR Combined</div>
         </div>`;
     }
 
     function renderCharts(monthlyData, rollingData) {
-      // Updated Options for Visibility on White
       const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -683,13 +667,12 @@
         labels: statuses,
         datasets: [{
           data: statusCounts,
-          backgroundColor: marketColors, // This will cycle through if more statuses than colors
+          backgroundColor: marketColors,
           borderColor: '#FFFFFF',
           borderWidth: 2
         }]
       }, { ...commonOptions, plugins: { legend: { position: 'right', labels: { color: '#444' } } }, scales: { x: {display:false}, y: {display:false} } });
 
-      // --- FILTER LOGIC ---
       const closedData = monthlyData.filter(d => d.status.toLowerCase().includes('closed'));
 
       function getWinners(dataSrc, field, metric = 'amount') {
@@ -727,23 +710,22 @@
         });
       }
 
-      // 3. Top Category ($) - CLOSED Only
+      // 3. Top Category ($)
       const topCats = getWinners(closedData, 'category', 'amount');
       chartData['barChartCategory'] = { winnerData: topCats, type: 'amount', filterField: 'category', sourceData: closedData };
       renderSpecificChart('barChartCategory', topCats, 'amount', 'category', closedData);
 
-      // 4. Top Subcategory ($) - CLOSED Only
+      // 4. Top Subcategory ($)
       const topSub = getWinners(closedData, 'subcategory', 'amount');
       chartData['barChartSubcategory'] = { winnerData: topSub, type: 'amount', filterField: 'subcategory', sourceData: closedData };
       renderSpecificChart('barChartSubcategory', topSub, 'amount', 'subcategory', closedData);
 
-      // 5. Top Property ($) - CLOSED Only
+      // 5. Top Property ($)
       const topPropAmt = getWinners(closedData, 'propertyId', 'amount');
       chartData['barChartPropertyAmt'] = { winnerData: topPropAmt, type: 'amount', filterField: 'propertyId', sourceData: closedData };
       renderSpecificChart('barChartPropertyAmt', topPropAmt, 'amount', 'propertyId', closedData);
 
-      // 6. Most Repeated Property (Count) - Keep All Statuses (Rolling Data) but EXCLUDE Duplicate
-      // NEW LOGIC HERE: Filter out status == "Duplicate"
+      // 6. Most Repeated Property (Count) - EXCLUDES DUPLICATES
       const rollingNonDuplicate = rollingData.filter(d => d.status.toLowerCase() !== 'duplicate');
       
       const topPropCount = getWinners(rollingNonDuplicate, 'propertyId', 'count');
@@ -803,8 +785,6 @@
 
       const labels = displayLabels || markets;
       const isSingleMarket = chartFilters[canvasId] !== 'All';
-
-      // For single market view, use a subset of colors, but ensure we have enough
       const singleMarketColors = [marketColors[1], marketColors[0], marketColors[4], marketColors[2], marketColors[3], marketColors[5]]; 
 
       chartInstances[canvasId] = new Chart(ctx, {
