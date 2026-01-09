@@ -40,7 +40,7 @@
     .glass-card {
       background: #FFFFFF;
       border-radius: 12px;
-      padding: 12px; /* Reduced padding */
+      padding: 12px; /* Compact padding */
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -313,10 +313,10 @@
     let rawData = [];
     let chartInstances = {};
     
-    // UPDATED: Reordered markets to put Ireland next to UK
+    // Ordered markets: Ireland is next to UK
     const markets = ['Portugal', 'France', 'UK', 'Ireland', 'Dubai', 'Spain'];
     
-    // UPDATED: Reordered colors to match the market order
+    // Palette reordered:
     // Portugal (Salmon), France (Blue), UK (GreyBlue), Ireland (SoftGreen), Dubai (Gold), Spain (Pink)
     const marketColors = ['#F58F79', '#8BA8E3', '#A5B4FC', '#82CA9D', '#FCD34D', '#DBDFEC'];
     
@@ -635,14 +635,12 @@
           </div>`;
       });
       
-      // Verification: This effectively sums all market cards after converting each transaction to EUR.
-      // E.g. (Total GBP * 0.84) + (Total AED * 0.27) + (Total EUR * 1.0) ...
       const totalAllMarkets = data.reduce((sum, d) => sum + convertToEUR(d.amount, d.country), 0);
       container.innerHTML += `
         <div class="glass-card border-[#8BA8E3] shadow-md">
           <h4 class="text-xs font-bold uppercase tracking-widest text-[#F58F79] truncate">Total</h4>
           <div class="text-xl font-bold mt-1 text-[#444] truncate">€${totalAllMarkets.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
-          <div class="text-[10px] mt-1 text-gray-400 truncate">EUR Combined</div>
+          <div class="text-[10px] mt-1 text-gray-400 truncate">Converted to EURO (Approx)</div>
         </div>`;
     }
 
@@ -667,7 +665,6 @@
         tension: 0.4
       }));
 
-      // UPDATED: Added click interaction to the line chart
       const lineChartOptions = {
         ...commonOptions,
         plugins: { 
