@@ -133,6 +133,23 @@
     /* Status Pills */
     .pill-closed { background: #E3F2FD; color: #1E88E5; border: 1px solid #BBDEFB; } 
     .pill-open { background: #FFF3E0; color: #F57C00; border: 1px solid #FFE0B2; } 
+    
+    /* Export Button */
+    .btn-export {
+      background-color: #8BA8E3;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background-color 0.2s;
+    }
+    .btn-export:hover {
+      background-color: #7A97D3;
+    }
   </style>
 </head>
 <body class="p-6">
@@ -174,6 +191,7 @@
           <button onclick="setChartFilter('barChartCategory', 'UK')" class="market-filter market-filter-UK-barChartCategory">UK</button>
           <button onclick="setChartFilter('barChartCategory', 'Dubai')" class="market-filter market-filter-Dubai-barChartCategory">AE</button>
           <button onclick="setChartFilter('barChartCategory', 'Spain')" class="market-filter market-filter-Spain-barChartCategory">ES</button>
+          <button onclick="setChartFilter('barChartCategory', 'Ireland')" class="market-filter market-filter-Ireland-barChartCategory">IE</button>
         </div>
       </div>
       <p class="text-xs opacity-70 mb-2 text-gray-400">Based on <b>Closed</b> tickets only.</p>
@@ -190,6 +208,7 @@
           <button onclick="setChartFilter('barChartSubcategory', 'UK')" class="market-filter market-filter-UK-barChartSubcategory">UK</button>
           <button onclick="setChartFilter('barChartSubcategory', 'Dubai')" class="market-filter market-filter-Dubai-barChartSubcategory">AE</button>
           <button onclick="setChartFilter('barChartSubcategory', 'Spain')" class="market-filter market-filter-Spain-barChartSubcategory">ES</button>
+          <button onclick="setChartFilter('barChartSubcategory', 'Ireland')" class="market-filter market-filter-Ireland-barChartSubcategory">IE</button>
         </div>
       </div>
       <p class="text-xs opacity-70 mb-2 text-gray-400">Based on <b>Closed</b> tickets only.</p>
@@ -206,6 +225,7 @@
           <button onclick="setChartFilter('barChartPropertyAmt', 'UK')" class="market-filter market-filter-UK-barChartPropertyAmt">UK</button>
           <button onclick="setChartFilter('barChartPropertyAmt', 'Dubai')" class="market-filter market-filter-Dubai-barChartPropertyAmt">AE</button>
           <button onclick="setChartFilter('barChartPropertyAmt', 'Spain')" class="market-filter market-filter-Spain-barChartPropertyAmt">ES</button>
+          <button onclick="setChartFilter('barChartPropertyAmt', 'Ireland')" class="market-filter market-filter-Ireland-barChartPropertyAmt">IE</button>
         </div>
       </div>
       <p class="text-xs opacity-70 mb-2 text-gray-400">Based on <b>Closed</b> tickets only.</p>
@@ -222,9 +242,10 @@
           <button onclick="setChartFilter('barChartPropertyCount', 'UK')" class="market-filter market-filter-UK-barChartPropertyCount">UK</button>
           <button onclick="setChartFilter('barChartPropertyCount', 'Dubai')" class="market-filter market-filter-Dubai-barChartPropertyCount">AE</button>
           <button onclick="setChartFilter('barChartPropertyCount', 'Spain')" class="market-filter market-filter-Spain-barChartPropertyCount">ES</button>
+          <button onclick="setChartFilter('barChartPropertyCount', 'Ireland')" class="market-filter market-filter-Ireland-barChartPropertyCount">IE</button>
         </div>
       </div>
-      <p class="text-xs opacity-70 mb-2 text-gray-400">Most tickets (Open & Closed) in last 3 months.</p>
+      <p class="text-xs opacity-70 mb-2 text-gray-400">Most tickets (Open & Closed) in last 3 months. Excludes duplicates.</p>
       <canvas id="barChartPropertyCount"></canvas>
     </div>
 
@@ -246,11 +267,19 @@
           <h2 id="modalTitle" class="text-2xl font-bold">Details</h2>
           <p id="modalSubtitle" class="text-sm opacity-70 mt-1 text-gray-500">Filtered View</p>
         </div>
-        <button onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        <div class="flex items-center gap-4">
+          <button onclick="downloadCSV()" class="btn-export">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export CSV
+          </button>
+          <button onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div class="overflow-auto flex-1 table-container">
@@ -281,16 +310,17 @@
   <script>
     let rawData = [];
     let chartInstances = {};
-    const markets = ['Portugal', 'France', 'UK', 'Dubai', 'Spain'];
+    // Included Ireland in the markets list
+    const markets = ['Portugal', 'France', 'UK', 'Dubai', 'Spain', 'Ireland'];
     
-    // PALETTE: Salmon, Blue, Cream (used for logic), PinkWhite, GreyBlue
-    // For Charts, we need distinct colors.
+    // PALETTE: Added #82CA9D (Soft Green) for Ireland
     // 0: Salmon #F58F79
     // 1: Blue #8BA8E3
     // 2: GreyBlue #DBDFEC
-    // 3: Gold/Yellow (Custom to fit) -> Let's use #FCD34D
+    // 3: Gold/Yellow #FCD34D
     // 4: Pink #FFEAE5
-    const marketColors = ['#F58F79', '#8BA8E3', '#A5B4FC', '#FCD34D', '#DBDFEC'];
+    // 5: Soft Green #82CA9D
+    const marketColors = ['#F58F79', '#8BA8E3', '#A5B4FC', '#FCD34D', '#DBDFEC', '#82CA9D'];
     
     let chartFilters = {
       'barChartCategory': 'All',
@@ -300,6 +330,7 @@
       'barChartMissingCategory': 'All'
     };
     let chartData = {};
+    let currentModalData = []; // Store data for export
 
     window.onload = function() {
       google.script.run.withSuccessHandler(onDataLoaded).getSheetData();
@@ -374,6 +405,7 @@
     function normalizeCountry(c) {
       if (!c) return 'Other';
       if (c.toLowerCase().includes('united kingdom')) return 'UK';
+      // Basic normalization for Ireland if needed, usually matches "Ireland"
       return c.trim();
     }
 
@@ -406,7 +438,7 @@
 
     function getExchangeRate(market) {
       const rates = {
-        'Portugal': 1.0, 'France': 1.0, 'Spain': 1.0,
+        'Portugal': 1.0, 'France': 1.0, 'Spain': 1.0, 'Ireland': 1.0,
         'UK': 0.84, 'Dubai': 0.27, 'Other': 1.0
       };
       return rates[market] || rates['Other'];
@@ -418,6 +450,7 @@
 
     // --- MODAL LOGIC ---
     function openModal(title, subtitle, dataRows) {
+      currentModalData = dataRows; // Store for export
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalSubtitle').innerText = subtitle;
       
@@ -467,6 +500,41 @@
       openModal(`${market} Refunds`, `Tickets for ${monthFilter === 'All' ? 'All Months' : monthFilter}`, data);
     }
 
+    // --- Export Function ---
+    function downloadCSV() {
+      if (!currentModalData || currentModalData.length === 0) return;
+
+      const headers = ['Date', 'Ticket ID', 'Property', 'Category', 'Subcategory', 'Status', 'Refund Status', 'Amount', 'Country'];
+      
+      const csvRows = [headers.join(',')];
+
+      currentModalData.forEach(row => {
+        const values = [
+          `"${row.dateDisplay}"`,
+          `"${row.ticketId || ''}"`,
+          `"${row.propertyId || ''}"`,
+          `"${(row.category || '').replace(/"/g, '""')}"`,
+          `"${(row.subcategory || '').replace(/"/g, '""')}"`,
+          `"${row.status || ''}"`,
+          `"${row.refundStatus || ''}"`,
+          `"${row.amount || 0}"`,
+          `"${row.country || ''}"`
+        ];
+        csvRows.push(values.join(','));
+      });
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'refund_data_export.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
     document.getElementById('dataModal').addEventListener('click', function(e) {
       if (e.target === this) closeModal();
     });
@@ -475,7 +543,8 @@
     function setChartFilter(chartId, market) {
       chartFilters[chartId] = market;
       
-      document.querySelectorAll(`.market-filter-All-${chartId}, .market-filter-Portugal-${chartId}, .market-filter-France-${chartId}, .market-filter-UK-${chartId}, .market-filter-Dubai-${chartId}, .market-filter-Spain-${chartId}`).forEach(btn => {
+      // Updated selector to include Ireland
+      document.querySelectorAll(`.market-filter-All-${chartId}, .market-filter-Portugal-${chartId}, .market-filter-France-${chartId}, .market-filter-UK-${chartId}, .market-filter-Dubai-${chartId}, .market-filter-Spain-${chartId}, .market-filter-Ireland-${chartId}`).forEach(btn => {
         btn.classList.remove('active');
       });
       document.querySelector(`.market-filter-${market}-${chartId}`).classList.add('active');
@@ -614,7 +683,7 @@
         labels: statuses,
         datasets: [{
           data: statusCounts,
-          backgroundColor: marketColors,
+          backgroundColor: marketColors, // This will cycle through if more statuses than colors
           borderColor: '#FFFFFF',
           borderWidth: 2
         }]
@@ -673,10 +742,13 @@
       chartData['barChartPropertyAmt'] = { winnerData: topPropAmt, type: 'amount', filterField: 'propertyId', sourceData: closedData };
       renderSpecificChart('barChartPropertyAmt', topPropAmt, 'amount', 'propertyId', closedData);
 
-      // 6. Most Repeated Property (Count) - Keep All Statuses (Rolling Data)
-      const topPropCount = getWinners(rollingData, 'propertyId', 'count');
-      chartData['barChartPropertyCount'] = { winnerData: topPropCount, type: 'count', filterField: 'propertyId', sourceData: rollingData };
-      renderSpecificChart('barChartPropertyCount', topPropCount, 'count', 'propertyId', rollingData);
+      // 6. Most Repeated Property (Count) - Keep All Statuses (Rolling Data) but EXCLUDE Duplicate
+      // NEW LOGIC HERE: Filter out status == "Duplicate"
+      const rollingNonDuplicate = rollingData.filter(d => d.status.toLowerCase() !== 'duplicate');
+      
+      const topPropCount = getWinners(rollingNonDuplicate, 'propertyId', 'count');
+      chartData['barChartPropertyCount'] = { winnerData: topPropCount, type: 'count', filterField: 'propertyId', sourceData: rollingNonDuplicate };
+      renderSpecificChart('barChartPropertyCount', topPropCount, 'count', 'propertyId', rollingNonDuplicate);
 
       // 7. Missing Categories
       const closedOrMultipleData = monthlyData.filter(d => 
@@ -732,7 +804,8 @@
       const labels = displayLabels || markets;
       const isSingleMarket = chartFilters[canvasId] !== 'All';
 
-      const singleMarketColors = [marketColors[1], marketColors[0], marketColors[4], marketColors[2]]; 
+      // For single market view, use a subset of colors, but ensure we have enough
+      const singleMarketColors = [marketColors[1], marketColors[0], marketColors[4], marketColors[2], marketColors[3], marketColors[5]]; 
 
       chartInstances[canvasId] = new Chart(ctx, {
         type: 'bar',
